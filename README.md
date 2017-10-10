@@ -1,6 +1,6 @@
 # Implement ACK division attack in ns-3
 ## Course Code: CO300
-## Assignment: #35
+## Assignment: #34
 ### Overview 
 TCP uses a byte granularity error control protocol and consequently each TCP segment
 is described by sequence number and acknowledgment fields that refer to byte offsets within
