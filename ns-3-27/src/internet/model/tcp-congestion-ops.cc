@@ -19,6 +19,8 @@
 #include "tcp-congestion-ops.h"
 #include "tcp-socket-base.h"
 #include "ns3/log.h"
+#include <fstream>
+#include <iostream>
 
 namespace ns3 {
 
@@ -128,6 +130,16 @@ TcpNewReno::SlowStart (Ptr<TcpSocketState> tcb, uint32_t segmentsAcked)
 
   if (segmentsAcked >= 1)
     {
+
+     std::ofstream fp;
+      fp.open("data2.txt",std::ios::app);
+      fp<<Simulator::Now().GetSeconds()<<" "<<tcb->m_cWnd<<"\n";
+      fp.close();
+
+
+
+
+      std::cout<<"time: "<<Simulator::Now()<<"cwnd : "<<tcb->m_cWnd<<"\n";
       tcb->m_cWnd += tcb->m_segmentSize;
       NS_LOG_INFO ("In SlowStart, updated to cwnd " << tcb->m_cWnd << " ssthresh " << tcb->m_ssThresh);
       return segmentsAcked - 1;

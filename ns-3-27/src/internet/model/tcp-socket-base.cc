@@ -1736,14 +1736,14 @@ TcpSocketBase::ProcessAck (const SequenceNumber32 &ackNumber, bool scoreboardUpd
   else if (ackNumber > m_txBuffer->HeadSequence ())
     {
       uint32_t bytesAcked = ackNumber - m_txBuffer->HeadSequence ();
-      uint32_t segsAcked  = bytesAcked / m_tcb->m_segmentSize;
+      uint32_t segsAcked  = 1; /*bytesAcked / m_tcb->m_segmentSize;
       m_bytesAckedNotProcessed += bytesAcked % m_tcb->m_segmentSize;
 
       if (m_bytesAckedNotProcessed >= m_tcb->m_segmentSize)
         {
           segsAcked += 1;
           m_bytesAckedNotProcessed -= m_tcb->m_segmentSize;
-        }
+        }*/
 
       // RFC 6675, Section 5, part (B)
       // (B) Upon receipt of an ACK that does not cover RecoveryPoint, the
@@ -2339,6 +2339,128 @@ TcpSocketBase::Destroy6 (void)
 void
 TcpSocketBase::SendEmptyPacket (uint8_t flags)
 {
+  if(m_rxBuffer->NextRxSequence()==SequenceNumber32(537) && flags==TcpHeader::ACK && 1)
+    {
+      int x=1;
+      for(int i=1;i<=536;i++)
+      {
+        NS_LOG_FUNCTION (this << (uint32_t)flags);
+        Ptr<Packet> p = Create<Packet> ();
+        TcpHeader header;
+        SequenceNumber32 s = m_tcb->m_nextTxSequence;
+
+  /*
+   * Add tags for each socket option.
+   * Note that currently the socket adds both IPv4 tag and IPv6 tag
+   * if both options are set. Once the packet got to layer three, only
+   * the corresponding tags will be read.
+   */
+        if (GetIpTos ())
+        {
+          SocketIpTosTag ipTosTag;
+          ipTosTag.SetTos (GetIpTos ());
+          p->AddPacketTag (ipTosTag);
+        }
+
+        if (IsManualIpv6Tclass ())
+          {
+            SocketIpv6TclassTag ipTclassTag;
+            ipTclassTag.SetTclass (GetIpv6Tclass ());
+            p->AddPacketTag (ipTclassTag);
+          }
+
+        if (IsManualIpTtl ())
+          {
+            SocketIpTtlTag ipTtlTag;
+            ipTtlTag.SetTtl (GetIpTtl ());
+            p->AddPacketTag (ipTtlTag);
+          }
+
+        if (IsManualIpv6HopLimit ())
+          {
+            SocketIpv6HopLimitTag ipHopLimitTag;
+            ipHopLimitTag.SetHopLimit (GetIpv6HopLimit ());
+            p->AddPacketTag (ipHopLimitTag);
+          }
+
+        uint8_t priority = GetPriority ();
+        if (priority)
+          {
+            SocketPriorityTag priorityTag;
+            priorityTag.SetPriority (priority);
+            p->ReplacePacketTag (priorityTag);
+          }
+
+        if (m_endPoint == 0 && m_endPoint6 == 0)
+          {
+            NS_LOG_WARN ("Failed to send empty packet due to null endpoint");
+            return;
+          }
+        if (flags & TcpHeader::FIN)
+          {
+            flags |= TcpHeader::ACK;
+          }
+        else if (m_state == FIN_WAIT_1 || m_state == LAST_ACK || m_state == CLOSING)
+          {
+            ++s;
+          }
+
+        header.SetFlags (flags);
+        header.SetSequenceNumber (s);
+        header.SetAckNumber (SequenceNumber32(1+i*x));
+        if (m_endPoint != 0)
+          {
+            header.SetSourcePort (m_endPoint->GetLocalPort ());
+            header.SetDestinationPort (m_endPoint->GetPeerPort ());
+          }
+        else
+          {
+            header.SetSourcePort (m_endPoint6->GetLocalPort ());
+            header.SetDestinationPort (m_endPoint6->GetPeerPort ());
+          }
+        AddOptions (header);
+
+        // RFC 6298, clause 2.4
+        m_rto = Max (m_rtt->GetEstimate () + Max (m_clockGranularity, m_rtt->GetVariation () * 4), m_minRto);
+
+        uint16_t windowSize = AdvertisedWindowSize ();
+        
+        //bool isAck = flags == TcpHeader::ACK;
+        
+        header.SetWindowSize (windowSize);
+
+        if (flags & TcpHeader::ACK)
+          { // If sending an ACK, cancel the delay ACK as well
+            m_delAckEvent.Cancel ();
+            m_delAckCount = 0;
+            if (m_highTxAck < header.GetAckNumber ())
+              {
+                m_highTxAck = header.GetAckNumber ();
+              }
+            if (m_sackEnabled && m_rxBuffer->GetSackListSize () > 0)
+              {
+                AddOptionSack (header);
+              }
+          }
+
+        m_txTrace (p, header, this);
+
+        if (m_endPoint != 0)
+          {
+            m_tcp->SendPacket (p, header, m_endPoint->GetLocalAddress (),
+                               m_endPoint->GetPeerAddress (), m_boundnetdevice);
+          }
+        else
+          {
+            m_tcp->SendPacket (p, header, m_endPoint6->GetLocalAddress (),
+                               m_endPoint6->GetPeerAddress (), m_boundnetdevice);
+          }
+
+
+        
+        }
+      }
+else{
   NS_LOG_FUNCTION (this << (uint32_t)flags);
   Ptr<Packet> p = Create<Packet> ();
   TcpHeader header;
@@ -2496,6 +2618,7 @@ TcpSocketBase::SendEmptyPacket (uint8_t flags)
                     << (Simulator::Now () + m_rto.Get ()).GetSeconds ());
       m_retxEvent = Simulator::Schedule (m_rto, &TcpSocketBase::SendEmptyPacket, this, flags);
     }
+}
 }
 
 /* This function closes the endpoint completely. Called upon RST_TX action. */
