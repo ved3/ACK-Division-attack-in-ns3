@@ -9,25 +9,26 @@ of segments rather than bytes. This mismatch results in an attack called ACK-DIV
 receiver makes the sender to send data packets quicker.
 
 ### References
-* TCP Congestion Control with a Misbehaving Receiver (https://cseweb.ucsd.edu/~savage/papers/CCR99.pdf)
-* TCP models in ns-3: https://www.nsnam.org/docs/models/html/tcp.html
+1] TCP Congestion Control with a Misbehaving Receiver (https://cseweb.ucsd.edu/~savage/papers/CCR99.pdf)
 
-### Changes made to original ns-3.27
+2] TCP models in ns-3: https://www.nsnam.org/docs/models/html/tcp.html
 
-* Files Changed : 
-1]	/src/internet/model/tcp-socket-base.cc
-Changes :   * New if-else clause for ACK-div code and normal code
- 			* Additional Loop for dividing ACKs
- 			* Each ACK is divided into 536 ACKs
- 			* New variable 'm_preSeq' to store the value of last actual ACK number
- 			* Packet level implementation in 'processACK' instead of Byte level implementation 
-2] /src/internet/model/tcp-socket-base.h
-Changes :	* New variable 'm_ackDivEnabled' as user input to implement attack from command line
+### New Example added 
 
-* New Examples added : 1]	NAME = tcp-ack-div.cc, PATH = /examples/tcp
+* NAME = tcp-ack-div.cc
+
+* PATH = scratch
 
 
 ### Execution Commands
 
 For ACK-DIVISION attack implementation :
 * ./waf --run "tcp-ack-div --maxBytes=0 --ackdiv=true"
+
+### Execution Environment
+
+* Run Time = 3s
+
+* Bandwidth = 5Gbps
+
+* Delay = 100ms
