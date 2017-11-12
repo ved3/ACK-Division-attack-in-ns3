@@ -1,14 +1,4 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2015 Natale Patriciello <natale.patriciello@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -131,15 +121,7 @@ TcpNewReno::SlowStart (Ptr<TcpSocketState> tcb, uint32_t segmentsAcked)
   if (segmentsAcked >= 1)
     {
 
-     std::ofstream fp;
-      fp.open("data2.txt",std::ios::app);
-      fp<<Simulator::Now().GetSeconds()<<" "<<tcb->m_cWnd<<"\n";
-      fp.close();
-
-
-
-
-      std::cout<<"time: "<<Simulator::Now()<<"cwnd : "<<tcb->m_cWnd<<"\n";
+     
       tcb->m_cWnd += tcb->m_segmentSize;
       NS_LOG_INFO ("In SlowStart, updated to cwnd " << tcb->m_cWnd << " ssthresh " << tcb->m_ssThresh);
       return segmentsAcked - 1;

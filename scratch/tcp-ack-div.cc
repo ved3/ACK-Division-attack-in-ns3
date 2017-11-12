@@ -32,6 +32,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/network-module.h"
 #include "ns3/packet-sink.h"
+#include "ns3/config-store-module.h"
 
 using namespace ns3;
 
@@ -43,6 +44,7 @@ main (int argc, char *argv[])
 
   bool tracing = false;
   uint32_t maxBytes = 0;
+  bool m_ackDiv=false;
 
 //
 // Allow the user to override any of the defaults at
@@ -52,7 +54,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("tracing", "Flag to enable/disable tracing", tracing);
   cmd.AddValue ("maxBytes",
                 "Total number of bytes for application to send", maxBytes);
+   cmd.AddValue("ackdiv","Flag to enable/disable ackDiv",m_ackDiv);
   cmd.Parse (argc, argv);
+
 
 //
 // Explicitly create the nodes required by the topology (shown above).
@@ -63,15 +67,20 @@ main (int argc, char *argv[])
 
   NS_LOG_INFO ("Create channels.");
 
+  
+
 //
 // Explicitly create the point-to-point link required by the topology (shown above).
 //
   PointToPointHelper pointToPoint;
-  pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("500Kbps"));
-  pointToPoint.SetChannelAttribute ("Delay", StringValue ("10ms"));
+  pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Gbps"));
+  pointToPoint.SetChannelAttribute ("Delay", StringValue ("100ms"));
 
   NetDeviceContainer devices;
   devices = pointToPoint.Install (nodes);
+  
+
+  Config::SetDefault ("ns3::TcpSocketBase::ackdiv", BooleanValue (m_ackDiv));
 
 //
 // Install the internet stack on the nodes
@@ -101,7 +110,7 @@ main (int argc, char *argv[])
   source.SetAttribute ("MaxBytes", UintegerValue (maxBytes));
   ApplicationContainer sourceApps = source.Install (nodes.Get (0));
   sourceApps.Start (Seconds (0.0));
-  sourceApps.Stop (Seconds (10.0));
+  sourceApps.Stop (Seconds (5.0));
 
 //
 // Create a PacketSinkApplication and install it on node 1
@@ -110,7 +119,7 @@ main (int argc, char *argv[])
                          InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer sinkApps = sink.Install (nodes.Get (1));
   sinkApps.Start (Seconds (0.0));
-  sinkApps.Stop (Seconds (10.0));
+  sinkApps.Stop (Seconds (5.0));
 
 //
 // Set up tracing if enabled
@@ -121,13 +130,17 @@ main (int argc, char *argv[])
       pointToPoint.EnableAsciiAll (ascii.CreateFileStream ("tcp-bulk-send.tr"));
       pointToPoint.EnablePcapAll ("tcp-bulk-send", false);
     }
-
 //
 // Now, do the actual simulation.
 //
   NS_LOG_INFO ("Run Simulation.");
-  Simulator::Stop (Seconds (10.0));
+  Simulator::Stop (Seconds (5.0));
   Simulator::Run ();
+
+//GtkConfigstore config;
+//config.ConfigureDefaults();
+//config.ConfigureAttributes();
+
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");
 

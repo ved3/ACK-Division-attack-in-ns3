@@ -57,7 +57,8 @@
 #include <math.h>
 #include <algorithm>
 
-int preSeq=1;
+int m_preSeq=1;
+bool m_enable=false;
 
 namespace ns3 {
 
@@ -137,6 +138,10 @@ TcpSocketBase::GetTypeId (void)
                    BooleanValue (true),
                    MakeBooleanAccessor (&TcpSocketBase::m_limitedTx),
                    MakeBooleanChecker ())
+    .AddAttribute ("ackdiv", "The size of packets sent in on state",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&TcpSocketBase::m_ackDivEnabled),
+                   MakeBooleanChecker())
     .AddTraceSource ("RTO",
                      "Retransmission timeout",
                      MakeTraceSourceAccessor (&TcpSocketBase::m_rto),
@@ -2341,16 +2346,18 @@ TcpSocketBase::Destroy6 (void)
 void
 TcpSocketBase::SendEmptyPacket (uint8_t flags)
 {
-  if(m_rxBuffer->NextRxSequence()!=SequenceNumber32(1) && flags==TcpHeader::ACK && 1)
-    {
-    //  int x=1;
-      for(int i=preSeq;i<=(int)m_rxBuffer->NextRxSequence().GetValue();i++)
+  if(m_ackDivEnabled==true)
+    m_enable=m_ackDivEnabled;
+  if(m_rxBuffer->NextRxSequence()!=SequenceNumber32(1) && flags==TcpHeader::ACK && m_enable==true)
+  {  //  int x=1;
+      for(int i=m_preSeq;i<=(int)m_rxBuffer->NextRxSequence().GetValue();i++)
       {
 
         NS_LOG_FUNCTION (this << (uint32_t)flags);
         Ptr<Packet> p = Create<Packet> ();
         TcpHeader header;
         SequenceNumber32 s = m_tcb->m_nextTxSequence;
+  
 
   /*
    * Add tags for each socket option.
@@ -2462,9 +2469,11 @@ TcpSocketBase::SendEmptyPacket (uint8_t flags)
 
         
         }
-        preSeq=(int)m_rxBuffer->NextRxSequence().GetValue()+1;
+        m_preSeq=(int)m_rxBuffer->NextRxSequence().GetValue()+1;
       }
-else{
+
+else 
+{
   NS_LOG_FUNCTION (this << (uint32_t)flags);
   Ptr<Packet> p = Create<Packet> ();
   TcpHeader header;
@@ -2476,6 +2485,7 @@ else{
    * if both options are set. Once the packet got to layer three, only
    * the corresponding tags will be read.
    */
+  
   if (GetIpTos ())
     {
       SocketIpTosTag ipTosTag;
@@ -2624,6 +2634,7 @@ else{
     }
 }
 }
+
 
 /* This function closes the endpoint completely. Called upon RST_TX action. */
 void

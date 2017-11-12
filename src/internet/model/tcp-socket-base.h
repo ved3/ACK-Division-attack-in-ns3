@@ -47,6 +47,7 @@ class TcpL4Protocol;
 class TcpHeader;
 class TcpCongestionOps;
 
+
 /**
  * \ingroup tcp
  *
@@ -1071,7 +1072,11 @@ protected:
    */
   static uint32_t SafeSubtraction (uint32_t a, uint32_t b);
 
+
 protected:
+
+  
+
   // Counters and events
   EventId           m_retxEvent;       //!< Retransmission event
   EventId           m_lastAckEvent;    //!< Last ACK timeout event
@@ -1136,7 +1141,9 @@ protected:
   uint8_t m_sndWindShift;      //!< Window shift to apply to incoming segments
 
   bool     m_timestampEnabled;    //!< Timestamp option enabled
-  uint32_t m_timestampToEcho;     //!< Timestamp to echo
+  uint32_t m_timestampToEcho; 
+  bool   m_ackDivEnabled;
+      //!< Timestamp to echo
 
   EventId m_sendPendingDataEvent; //!< micro-delay event to send pending data
 
