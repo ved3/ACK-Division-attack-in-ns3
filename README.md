@@ -15,9 +15,7 @@ receiver makes the sender to send data packets quicker.
 
 ### New Example added 
 
-* NAME = tcp-ack-div.cc
-
-* PATH = scratch
+* NAME = scratch/tcp-ack-div.cc
 
 
 ### Execution Commands
