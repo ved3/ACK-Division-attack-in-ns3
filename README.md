@@ -25,7 +25,7 @@ For ACK-DIVISION attack implementation :
 
 ### Execution Environment
 
-* Run Time = 3s
+* Run Time = 5s
 
 * Bandwidth = 5Gbps
 
