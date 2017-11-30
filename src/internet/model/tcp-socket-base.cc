@@ -59,6 +59,7 @@
 
 int m_preSeq=1;
 bool m_enable=false;
+int ack_size=25000;
 
 namespace ns3 {
 
@@ -142,6 +143,10 @@ TcpSocketBase::GetTypeId (void)
                    BooleanValue (false),
                    MakeBooleanAccessor (&TcpSocketBase::m_ackDivEnabled),
                    MakeBooleanChecker())
+    .AddAttribute("ackSize","Size of Ack Divison",
+                    IntegerValue(0),
+                    MakeIntegerAccessor(&TcpSocketBase::m_ackSize),
+                    MakeIntegerChecker<int>())
     .AddTraceSource ("RTO",
                      "Retransmission timeout",
                      MakeTraceSourceAccessor (&TcpSocketBase::m_rto),
@@ -2348,9 +2353,17 @@ TcpSocketBase::SendEmptyPacket (uint8_t flags)
 {
   if(m_ackDivEnabled==true)
     m_enable=m_ackDivEnabled;
+
+  if(m_ackSize!=0)
+    ack_size=m_ackSize;
+  NS_ASSERT(ack_size!=25000);
   if(m_rxBuffer->NextRxSequence()!=SequenceNumber32(1) && flags==TcpHeader::ACK && m_enable==true)
-  {  //  int x=1;
-      for(int i=m_preSeq;i<=(int)m_rxBuffer->NextRxSequence().GetValue();i++)
+  {  NS_ASSERT(ack_size<=((int)m_rxBuffer->NextRxSequence().GetValue()-m_preSeq));
+
+  int x=((int)m_rxBuffer->NextRxSequence().GetValue()-m_preSeq)/ack_size;
+ 
+  //  int x=1;
+      for(int i=1;i<=ack_size;i++)
       {
 
         NS_LOG_FUNCTION (this << (uint32_t)flags);
@@ -2417,7 +2430,7 @@ TcpSocketBase::SendEmptyPacket (uint8_t flags)
 
         header.SetFlags (flags);
         header.SetSequenceNumber (s);
-        header.SetAckNumber (SequenceNumber32(i));
+        header.SetAckNumber (SequenceNumber32(m_preSeq + i*x));
         if (m_endPoint != 0)
           {
             header.SetSourcePort (m_endPoint->GetLocalPort ());

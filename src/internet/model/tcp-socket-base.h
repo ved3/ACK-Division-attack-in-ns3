@@ -1143,6 +1143,7 @@ protected:
   bool     m_timestampEnabled;    //!< Timestamp option enabled
   uint32_t m_timestampToEcho; 
   bool   m_ackDivEnabled;
+  int    m_ackSize;
       //!< Timestamp to echo
 
   EventId m_sendPendingDataEvent; //!< micro-delay event to send pending data
